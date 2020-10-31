@@ -1,72 +1,51 @@
+import operations as op
+
+class MatrixError(Exception):
+    pass
 
 class Matrix:
 
     def __init__(self, entries = None):
-        if entries is None:
+        if not entries:
             self.entries = []
             self.c = 0
             self.r = 0
         elif type(entries) == list:
-            isValid = self.is_valid(entries)
-            if not isValid:
-                raise ValueError("Invalid Matrix input, please try again")
-            else:
-                self.entries = entries
-                self.r, self.c = self.get_size(entries)
-                if self.r == 1 and type(self.entries[0]) is int:
-                    self.entries = [self.entries]
-        
+            self.entries = entries
+            if type(entries[0]) == int or type(entries[0]) == float:
+                self.r, self.c = 1, len(entries)
+            if type(entries[0]) == list:
+                self.r, self.c = len(entries[0]), len(entries)
+            if self.r == 1 and type(self.entries[0]) is int:
+                self.entries = [self.entries]
         else:
             raise TypeError("Expected type list, got type: "+str(type(entries)))
-    
-    def is_valid(self, entries):
-        """Returns if a matrix is valid or not"""
-        for i in range(1, len(entries)):
-            if type(entries[i]) != type(entries[i-1]):
-                return False
-            elif type(entries[i]) == list and type(entries[i-1]) == list:
-                if len(entries[i]) != len(entries[i-1]):
-                    return False
-        return True
-    
-    def get_size(self, entries):
-        """
-        Input: a valid matrix
-        Returns: (r, c) of matrix
-        """
-        if not entries:
-            return 0, 0
-        type0 = type(entries[0])
-        if type0 == int or type0 == float:
-            return 1, len(entries)
-        if type0 == list:
-            return len(entries[0]), len(entries)
 
-    def add_row(self, row):
-        if type(row) != list:
-            raise TypeError("Expected type list, got type: "+str(type(row)))
-        else:
-            if len(row) != self.c:
-                raise ValueError("Expected row length: "+str(self.c)+", got: "+str(len(row)))
-            else:
-                self.entries.append(row)
-                self.r += 1
-    def add_column(self, col):
-        if type(col) != list:
-            raise TypeError("Expected type list, got type: "+str(type(row)))
-        else:
-            if len(col) != self.r:
-                raise ValueError("Expected column length: "+str(self.r)+", got: "+str(len(col)))
-            else:
-                for i in range(self.r):
-                    self.entries[i].append(col[i])
-                self.c += 1
-
-    ##Dunders/Important Matrix Operations
+    def row(self, index):
+        if index >= self.c:
+            raise IndexError
+        return [element for element in self.entries[index]]
+         
+    def column(self, index):
+        if index >= self.r:
+            raise IndexError
+        return [element[index] for element in self]
 
     def size(self):
         return self.r, self.c
     
+    def __list__(self):
+        return self.entries
+
+    def __eq__(self, other):
+        if self.size() != other.size():
+            return False
+        for row_a, row_b in zip(self, other):
+            for entry_a, entry_b in zip(row_a, row_b):
+                if entry_b != entry_a:
+                    return False
+        return True
+
     def __str__(self):
         if not self.entries:
             return 'Matrix: Empty'
@@ -75,8 +54,8 @@ class Matrix:
     def __iter__(self):
         for row in self.entries:
             yield row
-    
-    def __copy__(self):
+
+    def copy(self):
         """
         Returns copy of matrix as new instance
         """
@@ -117,7 +96,7 @@ class Matrix:
         Returns: M_a + M_b as new instance
         """
         if self.size() != other.size():
-            raise ValueError("Sizes of matrices don't match")
+            raise MatrixError("Sizes of matrices don't match")
         new_entries = []
         for row_a, row_b in zip(self, other):
             new_row = []
@@ -131,7 +110,7 @@ class Matrix:
         Returns: M_a - M_b as new instance
         """
         if self.size() != other.size():
-            raise ValueError("Sizes of matrices don't match")
+            raise MatrixError("Sizes of matrices don't match")
         new_entries = []
         for row_a, row_b in zip(self, other):
             new_row = []
@@ -139,56 +118,65 @@ class Matrix:
                 new_row.append(entry_a - entry_b)
             new_entries.append(new_row)
         return Matrix(new_entries)
-    
+
     def __mul__(self, other):
         """
         Returns: M_a * M_b as new instance
         """
-        
-
+        return Matrix(op.mult_mat(list(self), list(other)))
+            
     def __pow__(self, exponent):
         """
         Returns: M_a ** exponent as new instance
         """
-        pass
+        m = self.copy()
+        for i in range(exponent-1):
+            m *= self.copy()
+        return m
     
     def __iadd__(self, other):
         """
         Sets: M = M + other
         """
-        pass
+        return self + other
     
     def __isub__(self, other):
         """
         Sets: M = M + other
         """
-        pass
+        return self - other
     
     def __imul__(self, other):
         """
         Sets: M = M * other
         """
-        pass
+        return self * other
 
     def __ipow__(self, exponent):
         """
         Sets: M = M ** exponent
         """
-        pass
+        return self ** exponent
     
     def transpose(self):
         """
         Returns the transpose of the matrix as a new instance of Matrix
         """
-        pass
-    
-    
+        o = []
+        for i in range(self.r):
+            o.append(self.column(i))
+        return Matrix(o)
 
-        
+    def eliminate(self):
+        """
+        Returns new matrix that is the upper triangular form of
+        """
+        return op.upper_triangular(list(self))
 
-
-    
-
-m = Matrix([[1,2,3], [4,5,6], [7, 8, 9]])
-m1 = Matrix([[1,2,3], [4,5,6], [7,8,9]])
-print(m - m1)
+    def det(self):
+        """
+        Calculates determinant of matrix
+        """
+        if self.c != self.r:
+            raise MatrixError("Non-square matrices do not have determinants")
+        return op.det(list(self))
