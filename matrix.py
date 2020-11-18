@@ -1,5 +1,6 @@
 import operations as op
-
+import random
+import numpy as np
 class MatrixError(Exception):
     pass
 
@@ -171,7 +172,7 @@ class Matrix:
         """
         Returns new matrix that is the upper triangular form of
         """
-        return op.upper_triangular(list(self))
+        return Matrix(op.upper_triangular(list(self)))
 
     def det(self):
         """
@@ -180,3 +181,24 @@ class Matrix:
         if self.c != self.r:
             raise MatrixError("Non-square matrices do not have determinants")
         return op.det(list(self))
+    
+    def solve(self, b):
+        """
+        Solves Ax = b, by eliminating A and back substituting for a square matrix
+        Returns: x
+        """
+        if self.c != len(b):
+            raise MatrixError('b does not match size of A, expected length '+str(self.c)+' for b')
+        elif self.c != self.r:
+            return op.lsq(list(self), b)
+        if self.det() <= 1e-10:
+            return 'Matrix is Singular'
+        aug = op.upper_triangular([self.entries[i] + [b[i]] for i in range(len(b))])
+        return op.back_sub(aug)
+        
+
+m1 = Matrix([[-1,1], [1,1]])
+m2 = Matrix([[2,0],[0,4]])
+new_m = m1 * m2
+new_m *= m1
+print(new_m)

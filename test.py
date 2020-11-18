@@ -84,14 +84,6 @@ class TestCases(unittest.TestCase):
         except:
             self.assertEqual(True, True)
     
-    # def test_mul_big(self):
-    #     A = [[random.randint(1, 100) for j in range(100)] for i in range(200)]
-    #     B = [[random.randint(1, 100) for j in range(200)] for i in range(100)]
-    #     res_1 = test_mul(A, B)
-    #     res_2 = test_mul(B, A)
-    #     self.assertEqual(res_1 and res_2, True)
-    #     res = np.matmul(A, B)
-    
     def test_transpose_08(self):
         A = [[random.randint(1, 100) for j in range(20)] for i in range(10)]
         self.assertEqual(test_transpose(A), True)
@@ -103,6 +95,8 @@ class TestCases(unittest.TestCase):
     def test_power_10(self):
         A = [[random.randint(1, 10) for j in range(10)] for i in range(10)]
         self.assertEqual(test_power(A, random.randint(5,10)), True)
+
+    
 
        
 
